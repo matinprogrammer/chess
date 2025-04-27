@@ -1,10 +1,10 @@
 from enum import Enum
 
 
-__all__ = ["PieceColor", "ColorName", "PieceColorError"]
+__all__ = ["PieceColor", "ColorName", "ColorError"]
 
 
-class PieceColorError(Exception):
+class ColorError(Exception):
     pass
 
 
@@ -24,12 +24,12 @@ class PieceColor:
     @color.setter
     def color(self, value: ColorName) -> None:
         if not isinstance(value, ColorName):
-            raise PieceColorError(f"Color must be a string or Color enum, got {type(value)}")
+            raise ColorError(f"Color must be a string or Color enum, got {type(value)}")
         self._color = value
 
     @color.deleter
     def color(self) -> None:
-        raise PieceColorError("Color cannot be deleted")
+        raise ColorError("Color cannot be deleted")
 
     def __str__(self) -> str:
         return self._color.value
