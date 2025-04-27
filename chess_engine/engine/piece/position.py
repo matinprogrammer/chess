@@ -1,6 +1,9 @@
 from typing import Tuple, Self
 
 
+__all__ = ["ChessFile", "PiecePosition", "ChessFileError", "PiecePositionError"]
+
+
 class PiecePositionError(Exception):
     pass
 
