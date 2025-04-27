@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 __all__ = ["PieceColor", "ColorName", "PieceColorError"]
 
 
@@ -24,7 +23,7 @@ class PieceColor:
     @color.setter
     def color(self, value: ColorName) -> None:
         if not isinstance(value, ColorName):
-            raise PieceColorError(f"Color must be a string or Color enum, got {type(value)}")
+            raise PieceColorError(f"Color must be an instance of ColorName enum, got {type(value)}.")
         self._color = value
 
     @color.deleter
@@ -35,4 +34,4 @@ class PieceColor:
         return self._color.value
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} color={self._color}>"
+        return f"{self.__class__.__name__}({self.color=})"
