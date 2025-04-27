@@ -1,120 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Type
-from enum import Enum
-
-class PieceName(Enum):
-    PAWN = "pawn"
-    ROOK = "rook"
-    KNIGHT = "knight"
-    BISHOP = "bishop"
-    QUEEN = "queen"
-    KING = "king"
-
-
-class ColorName(Enum):
-    WHITE = "white"
-    BLACK = "black"
-
-
-class PieceColorError(Exception):
-    pass
-
-
-class PieceColor:
-    def __init__(self, color: ColorName) -> None:
-        self.color = color
-
-    @property
-    def color(self) -> ColorName:
-        return self._color
-
-    @color.setter
-    def color(self, value: ColorName) -> None:
-        if not isinstance(value, ColorName):
-            raise PieceColorError(f"Color must be a string or Color enum, got {type(value)}")
-        self._color = value
-
-    @color.deleter
-    def color(self) -> None:
-        raise PieceColorError("Color cannot be deleted")
-
-    def __str__(self) -> str:
-        return self._color.value
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} color={self._color}>"
+from .pieces import *
+from .color import *
+from .abstract import Piece
 
 
 class PieceCreatorError(Exception):
     pass
-
-
-class Piece(ABC):
-    def __init__(self, color: PieceColor) -> None:
-        self.color = color
-
-    @abstractmethod
-    def get_moves(self):
-        pass
-
-    @abstractmethod
-    def get_attacks(self):
-        pass
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}-{self.color}"
-
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self.color=}>"
-
-
-class Pawn(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
-
-class Rook(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
-
-class Knight(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
-
-class Bishop(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
-
-class Queen(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
-
-class King(Piece):
-    def get_moves(self):
-        pass
-
-    def get_attacks(self):
-        pass
-
 
 class PieceCreator(ABC):
     @abstractmethod
