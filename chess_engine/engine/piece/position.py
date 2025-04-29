@@ -1,4 +1,4 @@
-from typing import Tuple, Self
+from typing import Tuple
 
 
 __all__ = ["ChessFile", "PiecePosition", "ChessFileError", "PiecePositionError"]
@@ -115,7 +115,7 @@ class PiecePosition:
         return (position_number - 1) // 8 + 1, (position_number - 1) % 8 + 1
 
     @classmethod
-    def create_position_from_position_number(cls, position_number: int) -> Self:
+    def create_position_from_position_number(cls, position_number: int) -> 'PiecePosition':
         return cls(*cls.convert_position_number_to_row_column(position_number))
 
     def __str__(self) -> str:
