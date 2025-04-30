@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 __all__ = ["ChessFile", "PiecePosition", "ChessFileError", "PiecePositionError"]
@@ -118,13 +118,74 @@ class PiecePosition:
     def create_position_from_position_number(cls, position_number: int) -> 'PiecePosition':
         return cls(*cls.convert_position_number_to_row_column(position_number))
 
+    def __eq__(self, other):
+        if isinstance(other, PiecePosition):
+            return self.row == other.row and self.column_number == other.column_number
+        return NotImplemented
+
+    @classmethod
+    def move_up(cls, pos: 'PiecePosition'):
+        for r in range(pos.row + 1, 9):
+            yield cls(r, pos.column.number)
+
+    @classmethod
+    def move_down(cls, pos: 'PiecePosition'):
+        for r in range(pos.row - 1, 0, -1):
+            yield cls(r, pos.column.number)
+
+    @classmethod
+    def move_right(cls, pos: 'PiecePosition'):
+        for c in range(pos.column.number + 1, 9):
+            yield cls(pos.row, c)
+
+    @classmethod
+    def move_left(cls, pos: 'PiecePosition'):
+        for c in range(pos.column.number - 1, 0, -1):
+            yield cls(pos.row, c)
+
+    @classmethod
+    def move_up_right(cls, pos: 'PiecePosition'):
+        r, c = pos.row + 1, pos.column.number + 1
+        while r <= 8 and c <= 8:
+            yield cls(r, c)
+            r += 1
+            c += 1
+
+    @classmethod
+    def move_up_left(cls, pos: 'PiecePosition'):
+        r, c = pos.row + 1, pos.column.number - 1
+        while r <= 8 and c >= 1:
+            yield cls(r, c)
+            r += 1
+            c -= 1
+
+    @classmethod
+    def move_down_right(cls, pos: 'PiecePosition'):
+        r, c = pos.row - 1, pos.column.number + 1
+        while r >= 1 and c <= 8:
+            yield cls(r, c)
+            r -= 1
+            c += 1
+
+    @classmethod
+    def move_down_left(cls, pos: 'PiecePosition'):
+        r, c = pos.row - 1, pos.column.number - 1
+        while r >= 1 and c >= 1:
+            yield cls(r, c)
+            r -= 1
+            c -= 1
+
+    @classmethod
+    def offset(cls, pos: 'PiecePosition', offset: Tuple[int, int]) -> Optional['PiecePosition']:
+        dr, dc = offset
+        new_row = pos.row + dr
+        new_col = pos.column.number + dc
+        if 1 <= new_row <= 8 and 1 <= new_col <= 8:
+            return cls(new_row, new_col)
+        return None
+
     def __str__(self) -> str:
         return f"{self.column.letter}{self.row}"
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.row=}, {self.column=})"
-
-    def __eq__(self, other):
-        if isinstance(other, PiecePosition):
-            return self.row == other.row and self.column_number == other.column_number
-        return NotImplemented

@@ -1,5 +1,7 @@
 from enum import Enum
-from .abstract import Piece
+from .abstract import Piece, MoveInfo
+from .color import ColorName
+from .position import PiecePosition
 
 
 __all__ = ["PieceName", "Pawn", "Rook", "Knight", "Bishop", "Queen", "King"]
@@ -16,7 +18,22 @@ class PieceName(Enum):
 
 class Pawn(Piece):
     def get_moves(self):
-        pass
+        result = {"from_pos": self.position, "to_pos": [[]]}
+
+        if self.color.color == ColorName.WHITE:
+            pos_gen = PiecePosition.move_up(self.position)
+        else:
+            pos_gen = PiecePosition.move_down(self.position)
+
+        pos1 = next(pos_gen, None)
+        if pos1:
+            result["to_pos"][0].append(pos1)
+
+        if not self.has_moved:
+            pos2 = next(pos_gen, None)
+            if pos2:
+                result["to_pos"][0].append(pos2)
+        return MoveInfo(**result)
 
     def get_attacks(self):
         pass
@@ -24,7 +41,13 @@ class Pawn(Piece):
 
 class Rook(Piece):
     def get_moves(self):
-        pass
+        directions = [
+            PiecePosition.move_up,
+            PiecePosition.move_right,
+            PiecePosition.move_down,
+            PiecePosition.move_left
+        ]
+        return self._get_moves_by_directions(directions)
 
     def get_attacks(self):
         pass
@@ -32,7 +55,17 @@ class Rook(Piece):
 
 class Knight(Piece):
     def get_moves(self):
-        pass
+        offset = [
+            (2, 1),
+            (1, 2),
+            (-1, 2),
+            (-2, 1),
+            (-2, -1),
+            (-1, -2),
+            (1, -2),
+            (2, -1)
+        ]
+        return self._get_moves_by_offset(offset)
 
     def get_attacks(self):
         pass
@@ -40,7 +73,13 @@ class Knight(Piece):
 
 class Bishop(Piece):
     def get_moves(self):
-        pass
+        directions = [
+            PiecePosition.move_up_right,
+            PiecePosition.move_down_right,
+            PiecePosition.move_down_left,
+            PiecePosition.move_up_left
+        ]
+        return self._get_moves_by_directions(directions)
 
     def get_attacks(self):
         pass
@@ -48,7 +87,17 @@ class Bishop(Piece):
 
 class Queen(Piece):
     def get_moves(self):
-        pass
+        directions = [
+            PiecePosition.move_up,
+            PiecePosition.move_up_right,
+            PiecePosition.move_right,
+            PiecePosition.move_down_right,
+            PiecePosition.move_down,
+            PiecePosition.move_down_left,
+            PiecePosition.move_left,
+            PiecePosition.move_up_left
+        ]
+        return self._get_moves_by_directions(directions)
 
     def get_attacks(self):
         pass
@@ -56,7 +105,17 @@ class Queen(Piece):
 
 class King(Piece):
     def get_moves(self):
-        pass
+        offset = [
+            (-1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+            (1, 0),
+            (1, -1),
+            (0, -1),
+            (-1, -1)
+        ]
+        return self._get_moves_by_offset(offset)
 
     def get_attacks(self):
         pass

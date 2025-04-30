@@ -1,10 +1,29 @@
 from abc import ABC, abstractmethod
 from .color import PieceColor
 from .position import PiecePosition
+from typing import Callable, Generator, TypeAlias, List, Tuple, Type
+from pydantic import BaseModel, ConfigDict
+
+MoveGenerator: TypeAlias = Callable[[PiecePosition], Generator[PiecePosition, None, None]]
 
 
 class PieceError(Exception):
     pass
+
+
+class MoveInfo(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    from_pos: PiecePosition
+    to_pos: List[List[PiecePosition]]
+
+    def __str__(self):
+        positions = []
+        for group_pos in self.to_pos:
+            for pos in group_pos:
+                positions.append(str(pos))
+
+        return f"from position: {self.from_pos}, to position: {', '.join(positions)}"
 
 
 class Piece(ABC):
@@ -46,11 +65,11 @@ class Piece(ABC):
         self._has_moved = True
 
     @abstractmethod
-    def get_moves(self):
+    def get_moves(self) -> MoveInfo:
         pass
 
     @abstractmethod
-    def get_attacks(self):
+    def get_attacks(self) ->MoveInfo:
         pass
 
     def __str__(self) -> str:
@@ -64,3 +83,24 @@ class Piece(ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.color=}, {self.position=}, {self.is_die=}, {self.has_moved=})"
+
+    def _get_moves_by_directions(self, directions: List[MoveGenerator]) -> MoveInfo:
+        result = {"from_pos": self.position, "to_pos": []}
+
+        for direction in directions:
+            path = []
+            gen = direction(self.position)
+            for pos in gen:
+                path.append(pos)
+            result["to_pos"].append(path)
+
+        return MoveInfo(**result)
+
+    def _get_moves_by_offset(self, offset: List[Tuple[int, int]]) -> MoveInfo:
+        result = {"from_pos": self.position, "to_pos": []}
+
+        for dr, dc in offset:
+            pos = self.position.offset(self.position, (dr, dc))
+            if pos is not None:
+                result["to_pos"].append([pos])
+        return MoveInfo(**result)
