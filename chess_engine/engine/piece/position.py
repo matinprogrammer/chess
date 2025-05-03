@@ -184,6 +184,9 @@ class PiecePosition:
             return cls(new_row, new_col)
         return None
 
+    def __hash__(self):
+        return hash((self.row, self.column.number))
+
     def __str__(self) -> str:
         return f"{self.column.letter}{self.row}"
 
