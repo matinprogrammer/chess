@@ -16,6 +16,7 @@ class MoveInfo(BaseModel):
 
     from_pos: PiecePosition
     to_pos: List[List[PiecePosition]]
+    is_attack: bool = False
 
     def __str__(self):
         positions = []
@@ -23,7 +24,7 @@ class MoveInfo(BaseModel):
             for pos in group_pos:
                 positions.append(str(pos))
 
-        return f"from position: {self.from_pos}, to position: {', '.join(positions)}"
+        return f"from position: {self.from_pos}, to position: {', '.join(positions)}, is attack: {self.is_attack}"
 
 
 class Piece(ABC):
