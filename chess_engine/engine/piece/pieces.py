@@ -17,6 +17,10 @@ class PieceName(Enum):
 
 
 class Pawn(Piece):
+    @property
+    def icon(self):
+        return '♟' if self.color.color == ColorName.WHITE else '♙'
+
     def get_moves(self):
         result = {"from_pos": self.position, "to_pos": [[]]}
 
@@ -52,6 +56,10 @@ class Pawn(Piece):
 
 
 class Rook(Piece):
+    @property
+    def icon(self):
+        return '♜' if self.color.color == ColorName.WHITE else '♖'
+
     def get_moves(self):
         directions = [
             PiecePosition.move_up,
@@ -66,6 +74,10 @@ class Rook(Piece):
 
 
 class Knight(Piece):
+    @property
+    def icon(self):
+        return '♞' if self.color.color == ColorName.WHITE else'♘'
+
     def get_moves(self):
         offset = [
             (2, 1),
@@ -84,6 +96,10 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
+    @property
+    def icon(self):
+        return  '♝' if self.color.color == ColorName.WHITE else '♗'
+
     def get_moves(self):
         directions = [
             PiecePosition.move_up_right,
@@ -98,6 +114,10 @@ class Bishop(Piece):
 
 
 class Queen(Piece):
+    @property
+    def icon(self):
+        return '♛' if self.color.color == ColorName.WHITE else '♕'
+
     def get_moves(self):
         directions = [
             PiecePosition.move_up,
@@ -116,6 +136,10 @@ class Queen(Piece):
 
 
 class King(Piece):
+    @property
+    def icon(self):
+        return '♚' if self.color.color == ColorName.WHITE else '♔'
+
     def get_moves(self):
         offset = [
             (-1, 0),

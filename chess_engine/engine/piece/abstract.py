@@ -36,6 +36,11 @@ class Piece(ABC):
         self.name = color.color.value + self.__class__.__name__.lower()
 
     @property
+    @abstractmethod
+    def icon(self):
+        pass
+
+    @property
     def is_die(self) -> bool:
         return self._is_die
 
