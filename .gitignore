@@ -2,4 +2,4 @@
 logs/
 .idea/
 __pycache__/
-
+*.sqlite3
