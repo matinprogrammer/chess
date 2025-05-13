@@ -1,4 +1,20 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import (
+    UserCreationForm,
+    UserChangeForm,
+)
 from django import forms
+
+
+User = get_user_model()
+
+
+class UserCreationForm(UserCreationForm):
+    pass
+
+
+class UserChangeForm(UserChangeForm):
+    pass
 
 
 class UserLoginForm(forms.Form):
