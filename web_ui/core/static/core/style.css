@@ -1,0 +1,169 @@
+:root {
+    --light-square: #f0d9b5;
+    --dark-square: #b58863;
+    --highlight: rgba(0, 255, 0, 0.3);
+    --selected: rgba(255, 255, 0, 0.4);
+    --capture: rgba(255, 0, 0, 0.3);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+}
+
+.chessboard {
+    width: 600px;
+    height: 600px;
+    margin: 20px auto;
+    border: 15px solid #4a3728;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    direction: ltr;
+}
+
+.square {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.square.light {
+    background-color: var(--light-square);
+}
+
+.square.dark {
+    background-color: var(--dark-square);
+}
+
+.square.highlight {
+    background-color: var(--highlight);
+}
+
+.square.selected {
+    background-color: var(--selected);
+}
+
+.square.capture {
+    background-color: var(--capture);
+}
+
+.piece {
+    width: 80%;
+    height: 80%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 10;
+    transition: transform 0.2s ease;
+}
+
+.piece:hover {
+    transform: scale(1.1);
+}
+
+.coordinates {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.file-coordinate {
+    bottom: 2px;
+    right: 4px;
+}
+
+.rank-coordinate {
+    top: 2px;
+    left: 4px;
+}
+
+.light .coordinates {
+    color: var(--dark-square);
+}
+
+.dark .coordinates {
+    color: var(--light-square);
+}
+
+.game-info {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.move-history {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.status-indicator {
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-check {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-checkmate {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #4a3728;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #5c493a;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+@media (max-width: 640px) {
+    .chessboard {
+        width: 90vw;
+        height: 90vw;
+        border-width: 8px;
+    }
+}

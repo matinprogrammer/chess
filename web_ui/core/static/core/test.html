@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Chess Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --light-square: #f0d9b5;
+            --dark-square: #b58863;
+            --highlight: rgba(0, 255, 0, 0.3);
+            --selected: rgba(255, 255, 0, 0.4);
+            --capture: rgba(255, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .chessboard {
+            width: 600px;
+            height: 600px;
+            margin: 20px auto;
+            border: 15px solid #4a3728;
+            border-radius: 5px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+        }
+
+        .square {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .square.light {
+            background-color: var(--light-square);
+        }
+
+        .square.dark {
+            background-color: var(--dark-square);
+        }
+
+        .square.highlight {
+            background-color: var(--highlight);
+        }
+
+        .square.selected {
+            background-color: var(--selected);
+        }
+
+        .square.capture {
+            background-color: var(--capture);
+        }
+
+        .piece {
+            width: 80%;
+            height: 80%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 10;
+            transition: transform 0.2s ease;
+        }
+
+        .piece:hover {
+            transform: scale(1.1);
+        }
+
+        .coordinates {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .file-coordinate {
+            bottom: 2px;
+            right: 4px;
+        }
+
+        .rank-coordinate {
+            top: 2px;
+            left: 4px;
+        }
+
+        .light .coordinates {
+            color: var(--dark-square);
+        }
+
+        .dark .coordinates {
+            color: var(--light-square);
+        }
+
+        .game-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .move-history {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .status-indicator {
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-check {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-checkmate {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #4a3728;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5c493a;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        @media (max-width: 640px) {
+            .chessboard {
+                width: 90vw;
+                height: 90vw;
+                border-width: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto py-8">
+        <h1 class="text-4xl font-bold text-center mb-6 text-gray-800">Interactive Chess Game</h1>
+
+        <div class="chessboard" id="chessboard"></div>
+
+        <div class="game-info">
+            <div id="game-status" class="status-indicator status-active">
+                <i class="fas fa-chess-knight mr-2"></i> White's turn
+            </div>
+
+            <div class="flex justify-between mb-4">
+                <button id="new-game-btn" class="btn btn-primary">
+                    <i class="fas fa-plus mr-2"></i>New Game
+                </button>
+                <button id="undo-move-btn" class="btn btn-primary">
+                    <i class="fas fa-undo mr-2"></i>Undo Move
+                </button>
+                <button id="resign-btn" class="btn btn-danger">
+                    <i class="fas fa-flag mr-2"></i>Resign
+                </button>
+            </div>
+
+            <h3 class="font-bold text-lg mb-2">Move History</h3>
+            <div class="move-history" id="move-history">
+                <div class="text-gray-500 italic">No moves yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Game state variables
+            let selectedSquare = null;
+            let currentTurn = 'white';
+            let gameStatus = 'active';
+            let moveHistory = [];
+
+            // Initialize the chessboard
+            function initializeBoard() {
+                const chessboard = $('#chessboard');
+                chessboard.empty();
+
+                const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+                const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+
+                ranks.forEach((rank, rankIndex) => {
+                    files.forEach((file, fileIndex) => {
+                        const squareId = file + rank;
+                        const isLight = (rankIndex + fileIndex) % 2 === 0;
+
+                        const square = $('<div>')
+                            .attr('id', squareId)
+                            .addClass('square')
+                            .addClass(isLight ? 'light' : 'dark')
+                            .data('position', squareId);
+
+                        // Add coordinates
+                        if (fileIndex === 0) {
+                            $('<span>')
+                                .addClass('coordinates rank-coordinate')
+                                .text(rank)
+                                .appendTo(square);
+                        }
+
+                        if (rankIndex === 7) {
+                            $('<span>')
+                                .addClass('coordinates file-coordinate')
+                                .text(file)
+                                .appendTo(square);
+                        }
+
+                        square.on('click', handleSquareClick);
+                        chessboard.append(square);
+                    });
+                });
+
+                // Load initial board state from server
+                loadBoardState();
+            }
+
+            // Load board state from server
+            function loadBoardState() {
+                axios.get('/api/chessboard')
+                    .then(response => {
+                        renderBoard(response.data);
+                    })
+                    .catch(error => {
+                        console.error('Error loading board state:', error);
+                        alert('Failed to load board state. Please try again.');
+                    });
+            }
+
+            // Render pieces on the board
+            function renderBoard(pieces) {
+                // Clear all pieces first
+                $('.square').empty();
+
+                // Add coordinates back (they were removed when clearing)
+                $('.square').each(function() {
+                    const squareId = $(this).attr('id');
+                    const file = squareId[0];
+                    const rank = squareId[1];
+
+                    if (file === 'a') {
+                        $('<span>')
+                            .addClass('coordinates rank-coordinate')
+                            .text(rank)
+                            .appendTo($(this));
+                    }
+
+                    if (rank === '1') {
+                        $('<span>')
+                            .addClass('coordinates file-coordinate')
+                            .text(file)
+                            .appendTo($(this));
+                    }
+                });
+
+                // Add pieces
+                pieces.forEach(piece => {
+                    const square = $('#' + piece.str_position);
+                    if (square.length) {
+                        const pieceElement = $('<div>')
+                            .addClass('piece')
+                            .css('background-image', `url('images/${piece.name}.png')`)
+                            .data('piece', piece);
+
+                        square.append(pieceElement);
+                    }
+                });
+            }
+
+            // Handle square clicks
+            function handleSquareClick() {
+                const square = $(this);
+                const squareId = square.attr('id');
+
+                // If no piece is selected
+                if (!selectedSquare) {
+                    const piece = square.find('.piece');
+                    if (piece.length) {
+                        const pieceData = piece.data('piece');
+
+                        // Check if it's this piece's turn
+                        if (pieceData.color === currentTurn) {
+                            // Select the piece and get possible moves
+                            selectPiece(square, pieceData);
+                        }
+                    }
+                }
+                // If a piece is already selected
+                else {
+                    // If clicking on the same piece, deselect it
+                    if (square.attr('id') === selectedSquare.attr('id')) {
+                        clearSelection();
+                        return;
+                    }
+
+                    // If clicking on a highlighted move square
+                    if (square.hasClass('highlight') || square.hasClass('capture')) {
+                        makeMove(selectedSquare.attr('id'), squareId);
+                    }
+                    // If clicking on another piece of the same color
+                    else {
+                        const piece = square.find('.piece');
+                        if (piece.length) {
+                            const pieceData = piece.data('piece');
+                            if (pieceData.color === currentTurn) {
+                                // Select the new piece instead
+                                clearSelection();
+                                selectPiece(square, pieceData);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Select a piece and highlight possible moves
+            function selectPiece(square, pieceData) {
+                clearSelection();
+
+                selectedSquare = square;
+                square.addClass('selected');
+
+                // Get possible moves from server
+                axios.get(`/api/moves?from=${square.attr('id')}`)
+                    .then(response => {
+                        const moves = response.data.legal_moves || [];
+                        const captures = response.data.captures || [];
+
+                        // Highlight possible moves
+                        moves.forEach(move => {
+                            $('#' + move).addClass('highlight');
+                        });
+
+                        // Highlight possible captures
+                        captures.forEach(capture => {
+                            $('#' + capture).addClass('capture');
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error getting possible moves:', error);
+                        clearSelection();
+                    });
+            }
+
+            // Make a move
+            function makeMove(from, to) {
+                axios.post('/api/move', { from, to })
+                    .then(response => {
+                        // Update board with new state
+                        renderBoard(response.data.board);
+
+                        // Update game status
+                        updateGameStatus(response.data.status);
+
+                        // Add to move history
+                        if (response.data.move_notation) {
+                            addToMoveHistory(response.data.move_notation);
+                        }
+
+                        // Clear selection
+                        clearSelection();
+                    })
+                    .catch(error => {
+                        console.error('Error making move:', error);
+                        alert('Invalid move. Please try again.');
+                        clearSelection();
+                    });
+            }
+
+            // Clear selection and highlights
+            function clearSelection() {
+                if (selectedSquare) {
+                    selectedSquare.removeClass('selected');
+                    selectedSquare = null;
+                }
+
+                $('.square').removeClass('highlight capture');
+            }
+
+            // Update game status display
+            function updateGameStatus(status) {
+                const statusElement = $('#game-status');
+                statusElement.removeClass('status-active status-check status-checkmate');
+
+                if (status === 'check') {
+                    statusElement.addClass('status-check')
+                        .html(`<i class="fas fa-exclamation-triangle mr-2"></i> ${currentTurn === 'white' ? 'White' : 'Black'} is in check!`);
+                } else if (status === 'checkmate') {
+                    statusElement.addClass('status-checkmate')
+                        .html(`<i class="fas fa-flag mr-2"></i> Checkmate! ${currentTurn === 'white' ? 'Black' : 'White'} wins!`);
+                    gameStatus = 'ended';
+                } else if (status === 'stalemate') {
+                    statusElement.addClass('status-checkmate')
+                        .html(`<i class="fas fa-handshake mr-2"></i> Stalemate! Game ended in a draw.`);
+                    gameStatus = 'ended';
+                } else {
+                    statusElement.addClass('status-active')
+                        .html(`<i class="fas fa-chess-knight mr-2"></i> ${currentTurn === 'white' ? 'Black' : 'White'}'s turn`);
+                    currentTurn = currentTurn === 'white' ? 'black' : 'white';
+                }
+            }
+
+            // Add move to history
+            function addToMoveHistory(notation) {
+                moveHistory.push(notation);
+                const historyElement = $('#move-history');
+
+                if (moveHistory.length === 1 && historyElement.find('.italic').length) {
+                    historyElement.empty();
+                }
+
+                const moveNumber = Math.ceil(moveHistory.length / 2);
+                let moveText = `${moveNumber}. ${notation}`;
+
+                if (moveHistory.length % 2 === 0) {
+                    // Black's move - append to last line
+                    const lastItem = historyElement.children().last();
+                    moveText = lastItem.text() + ' ' + notation;
+                    lastItem.text(moveText);
+                } else {
+                    // White's move - new line
+                    $('<div>').text(moveText).appendTo(historyElement);
+                }
+
+                // Scroll to bottom
+                historyElement.scrollTop(historyElement[0].scrollHeight);
+            }
+
+            // New game button
+            $('#new-game-btn').on('click', function() {
+                if (confirm('Start a new game? Current game will be lost.')) {
+                    axios.post('/api/new-game')
+                        .then(response => {
+                            // Reset game state
+                            selectedSquare = null;
+                            currentTurn = 'white';
+                            gameStatus = 'active';
+                            moveHistory = [];
+
+                            // Update UI
+                            renderBoard(response.data);
+                            updateGameStatus('active');
+                            $('#move-history').html('<div class="text-gray-500 italic">No moves yet</div>');
+                        })
+                        .catch(error => {
+                            console.error('Error starting new game:', error);
+                            alert('Failed to start new game. Please try again.');
+                        });
+                }
+            });
+
+            // Undo move button
+            $('#undo-move-btn').on('click', function() {
+                if (moveHistory.length === 0) {
+                    alert('No moves to undo!');
+                    return;
+                }
+
+                axios.post('/api/undo-move')
+                    .then(response => {
+                        // Update board with previous state
+                        renderBoard(response.data.board);
+
+                        // Update game status
+                        updateGameStatus(response.data.status);
+
+                        // Update move history
+                        moveHistory.pop();
+                        updateMoveHistoryDisplay();
+                    })
+                    .catch(error => {
+                        console.error('Error undoing move:', error);
+                        alert('Failed to undo move. Please try again.');
+                    });
+            });
+
+            // Resign button
+            $('#resign-btn').on('click', function() {
+                if (gameStatus === 'ended') {
+                    alert('Game has already ended!');
+                    return;
+                }
+
+                if (confirm(`Are you sure you want to resign? ${currentTurn === 'white' ? 'Black' : 'White'} will win.`)) {
+                    axios.post('/api/resign')
+                        .then(response => {
+                            // Update game status
+                            updateGameStatus('checkmate');
+                            gameStatus = 'ended';
+
+                            // Add resignation to move history
+                            addToMoveHistory(`${currentTurn === 'white' ? '0-1' : '1-0'} (resignation)`);
+                        })
+                        .catch(error => {
+                            console.error('Error resigning:', error);
+                            alert('Failed to resign. Please try again.');
+                        });
+                }
+            });
+
+            // Update move history display
+            function updateMoveHistoryDisplay() {
+                const historyElement = $('#move-history');
+                historyElement.empty();
+
+                if (moveHistory.length === 0) {
+                    historyElement.html('<div class="text-gray-500 italic">No moves yet</div>');
+                    return;
+                }
+
+                // Rebuild move history display
+                for (let i = 0; i < moveHistory.length; i += 2) {
+                    const moveNumber = (i / 2) + 1;
+                    const whiteMove = moveHistory[i];
+                    const blackMove = i + 1 < moveHistory.length ? moveHistory[i + 1] : '';
+
+                    const moveText = `${moveNumber}. ${whiteMove} ${blackMove}`;
+                    $('<div>').text(moveText).appendTo(historyElement);
+                }
+
+                // Scroll to bottom
+                historyElement.scrollTop(historyElement[0].scrollHeight);
+            }
+
+            // Initialize the board when page loads
+            initializeBoard();
+        });
+    </script>
+</body>
+</html>
