@@ -4,3 +4,4 @@ logs/
 __pycache__/
 *.sqlite3
 .pylintrc
+staticfiles/
