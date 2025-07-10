@@ -3,9 +3,9 @@ This module is responsible for managing the Chess class,
 which handles the turn order and game history rules for chess.
 """
 
-from board import Board
-from piece.color import ColorName
-from piece.abstract import MoveInfo
+from .board import Board
+from .piece.color import ColorName
+from .piece.abstract import MoveInfo
 
 TURN_START_INDEX = 1
 

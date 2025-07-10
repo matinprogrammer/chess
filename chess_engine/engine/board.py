@@ -4,10 +4,11 @@ This module is responsible for managing the Board class,
 """
 
 from typing import Dict, Optional, List
-from piece.abstract import Piece
-from piece.position import PiecePosition, START_ROW_COL_INDEX, END_ROW_COL_INDEX
-from piece.color import ColorName
-from piece.creators import piece_creator, PieceName
+
+from .piece.abstract import Piece
+from .piece.position import PiecePosition, START_ROW_COL_INDEX, END_ROW_COL_INDEX
+from .piece.color import ColorName
+from .piece.creators import piece_creator, PieceName
 
 
 class BoardError(Exception):
@@ -122,3 +123,6 @@ class Board:
                 row_pieces.append(str(piece.icon) if piece else '.')
             rows.append('  '.join(row_pieces))
         return '\n'.join(rows)
+
+    def serialize(self) -> List[Dict]:
+        return [piece.serialize() for piece in self.all_pieces()]

@@ -9,7 +9,7 @@ Includes:
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Generator, TypeAlias, List, Tuple
+from typing import Callable, Generator, TypeAlias, List, Tuple, Dict
 
 from pydantic import BaseModel, ConfigDict
 
@@ -165,3 +165,12 @@ class Piece(ABC):
             if pos is not None:
                 result["to_pos"].append([pos])
         return MoveInfo(**result)
+
+    def serialize(self) -> Dict:
+        return {
+            "name": self.name,
+            "color": self.color.color.value,
+            "row": self.position.row,
+            "column": self.position.column.number,
+            "str_position": str(self.position),
+        }
