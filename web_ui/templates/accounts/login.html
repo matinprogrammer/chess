@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="pb-5">
+        <div class="d-flex justify-content-center">
+            <article class="contact-form">
+                <h3 class="mt-5 mb-3">login</h3>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="form-control">
+                        {{ form.as_div }}
+                    </div>
+                    <button type="submit" class="form-control">login</button>
+                </form>
+            </article>
+        </div>
+    </div>
+{% endblock %}
